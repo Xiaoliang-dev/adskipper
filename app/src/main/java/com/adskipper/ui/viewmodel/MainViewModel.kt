@@ -271,7 +271,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val currentRules = rules.value
                 val export = com.adskipper.data.RuleExport(
                     appVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "",
-                    rules = currentRules.map { it.toJsonModel() }
+                    rules = currentRules.map { com.adskipper.data.toJsonModel(it) }
                 )
                 val gson = com.google.gson.GsonBuilder().setPrettyPrinting().create()
                 val json = gson.toJson(export)
