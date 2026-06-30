@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.adskipper.data.RuleEntity
 import com.adskipper.data.RuleManager
+import com.adskipper.data.toJsonModel
 import com.adskipper.service.AdSkipAccessibilityService
 import com.adskipper.service.FloatingWindowService
 import com.adskipper.util.*
@@ -271,7 +272,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val currentRules = rules.value
                 val export = com.adskipper.data.RuleExport(
                     appVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "",
-                    rules = currentRules.map { com.adskipper.data.toJsonModel(it) }
+                    rules = currentRules.map { it.toJsonModel() }
                 )
                 val gson = com.google.gson.GsonBuilder().setPrettyPrinting().create()
                 val json = gson.toJson(export)

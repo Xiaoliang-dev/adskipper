@@ -128,22 +128,12 @@ class AdSkipAccessibilityService : AccessibilityService() {
                 ruleManager.recordRuleTrigger(rule.id)
 
                 handler.post {
-                    serviceScope.launch {
-                        val settings = settingsManager.settings
-                        if (settings.showToast) {
-                            Toast.makeText(this@AdSkipAccessibilityService, "已跳过广告", Toast.LENGTH_SHORT).show()
-                        }
-                        if (settings.vibrate) {
-                            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-                            vibrator?.let {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    it.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
-                                } else {
-                                    @Suppress("DEPRECATION")
-                                    it.vibrate(100)
-                                }
-                            }
-                        }
+                    val settings = settingsManager.currentSettings
+                    if (settings.showToast) {
+                        Toast.makeText(this@AdSkipAccessibilityService, "已跳过广告", Toast.LENGTH_SHORT).show()
+                    }
+                    if (settings.vibrate) {
+                        vibrate()
                     }
                 }
 
