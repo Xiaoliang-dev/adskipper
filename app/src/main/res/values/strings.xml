@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AdSkipper</string>
+    <string name="app_name_full">广告跳过助手</string>
+    <string name="accessibility_service_description">通过无障碍服务自动检测并跳过应用广告。服务仅在识别到广告时执行点击操作，不会收集任何个人信息。</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">主页</string>
+    <string name="nav_rules">规则</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_stats">统计</string>
+
+    <!-- Home Screen -->
+    <string name="service_status">服务状态</string>
+    <string name="service_running">运行中</string>
+    <string name="service_stopped">已停止</string>
+    <string name="service_running_desc">无障碍服务正在后台运行，自动跳过广告</string>
+    <string name="service_stopped_desc">请开启无障碍服务以自动跳过广告</string>
+    <string name="goto_settings">前往设置开启</string>
+    <string name="today_skipped">今日跳过</string>
+    <string name="total_skipped">累计跳过</string>
+    <string name="active_rules">生效规则</string>
+    <string name="times">次</string>
+    <string name="quick_actions">快捷操作</string>
+    <string name="record_rule">录制规则</string>
+    <string name="record_rule_desc">通过悬浮窗录制新的跳过规则</string>
+    <string name="manage_rules">管理规则</string>
+    <string name="manage_rules_desc">查看、编辑和导入导出规则</string>
+    <string name="import_rules">导入规则</string>
+    <string name="export_rules">导出规则</string>
+    <string name="recent_stats">最近活动</string>
+
+    <!-- Rules Screen -->
+    <string name="rules_title">跳过规则</string>
+    <string name="rules_subtitle">管理和编辑广告跳过规则</string>
+    <string name="add_rule">添加规则</string>
+    <string name="edit_rule">编辑规则</string>
+    <string name="delete_rule">删除规则</string>
+    <string name="duplicate_rule">复制规则</string>
+    <string name="rule_name">规则名称</string>
+    <string name="rule_app">目标应用</string>
+    <string name="rule_description">规则描述</string>
+    <string name="rule_enabled">启用规则</string>
+    <string name="rule_conditions">触发条件</string>
+    <string name="rule_action">执行动作</string>
+    <string name="add_condition">添加条件</string>
+    <string name="add_action">添加动作</string>
+    <string name="condition_type">条件类型</string>
+    <string name="action_type">动作类型</string>
+    <string name="target_text">目标文本</string>
+    <string name="target_id">目标ID</string>
+    <string name="target_class">目标类名</string>
+    <string name="target_bounds">目标位置</string>
+    <string name="click_position">点击位置</string>
+    <string name="delay_ms">延迟(毫秒)</string>
+    <string name="match_type">匹配方式</string>
+    <string name="match_exact">完全匹配</string>
+    <string name="match_contains">包含</string>
+    <string name="match_startswith">开头匹配</string>
+    <string name="match_regex">正则表达式</string>
+    <string name="condition_text">文本内容</string>
+    <string name="condition_id">资源ID</string>
+    <string name="condition_class">类名</string>
+    <string name="action_click">点击</string>
+    <string name="action_click_parent">点击父元素</string>
+    <string name="action_swipe">滑动</string>
+    <string name="action_back">返回键</string>
+    <string name="action_custom_click">自定义点击</string>
+    <string name="select_app">选择应用</string>
+    <string name="search_app">搜索应用</string>
+    <string name="no_rules">暂无规则</string>
+    <string name="no_rules_desc">点击右下角添加按钮创建规则，或使用悬浮窗录制</string>
+    <string name="rule_count">共 %d 条规则</string>
+    <string name="rule_last_used">上次使用: %s</string>
+    <string name="rule_never_used">从未使用</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">设置</string>
+    <string name="general_settings">通用设置</string>
+    <string name="auto_start">开机自启</string>
+    <string name="auto_start_desc">系统启动时自动开启无障碍服务</string>
+    <string name="show_toast">显示提示</string>
+    <string name="show_toast_desc">跳过广告时显示Toast提示</string>
+    <string name="vibrate">振动反馈</string>
+    <string name="vibrate_desc">跳过广告时振动提示</string>
+    <string name="skip_delay">跳过延迟</string>
+    <string name="skip_delay_desc">检测到广告后等待 %d 毫秒再执行跳过</string>
+    <string name="advanced_settings">高级设置</string>
+    <string name="show_floating">显示悬浮窗</string>
+    <string name="show_floating_desc">在屏幕上显示快捷控制悬浮窗</string>
+    <string name="dark_mode">深色模式</string>
+    <string name="dark_mode_desc">跟随系统/开启/关闭</string>
+    <string name="about">关于</string>
+    <string name="version">版本 %s</string>
+    <string name="open_source">开源许可</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="check_update">检查更新</string>
+    <string name="reset_stats">重置统计</string>
+    <string name="reset_stats_desc">清除所有跳过统计数据</string>
+    <string name="reset_confirm">确定要重置所有统计数据吗？</string>
+    <string name="clear_all_rules">清除所有规则</string>
+    <string name="clear_all_rules_desc">删除所有自定义规则（不可恢复）</string>
+    <string name="clear_rules_confirm">确定要删除所有规则吗？此操作不可恢复！</string>
+    <string name="backup_restore">备份与恢复</string>
+
+    <!-- Recording -->
+    <string name="recording_title">录制规则</string>
+    <string name="recording_desc">点击目标元素以记录规则条件</string>
+    <string name="recording_step1">步骤 1: 选择目标应用</string>
+    <string name="recording_step2">步骤 2: 点击广告元素</string>
+    <string name="recording_step3">步骤 3: 保存规则</string>
+    <string name="recording_select_element">点击屏幕上的元素进行记录</string>
+    <string name="recording_save">保存规则</string>
+    <string name="recording_cancel">取消</string>
+    <string name="recording_next">下一步</string>
+    <string name="recording_prev">上一步</string>
+    <string name="recording_element_info">元素信息</string>
+    <string name="recording_edit_info">编辑元素信息</string>
+    <string name="floating_record">录制</string>
+    <string name="floating_stop">停止</string>
+    <string name="floating_minimize">收起</string>
+    <string name="floating_close">关闭</string>
+    <string name="floating_recording">正在录制...</string>
+    <string name="floating_tap_target">点击目标元素</string>
+
+    <!-- Import/Export -->
+    <string name="import_title">导入规则</string>
+    <string name="export_title">导出规则</string>
+    <string name="import_success">成功导入 %d 条规则</string>
+    <string name="import_failed">导入失败: %s</string>
+    <string name="export_success">已导出到 %s</string>
+    <string name="export_failed">导出失败: %s</string>
+    <string name="select_file">选择文件</string>
+    <string name="save_file">保存文件</string>
+    <string name="import_from_file">从文件导入</string>
+    <string name="import_from_clipboard">从剪贴板导入</string>
+    <string name="export_to_file">导出到文件</string>
+    <string name="export_to_clipboard">复制到剪贴板</string>
+    <string name="share_file">分享文件</string>
+    <string name="rules_json_description">AdSkipper 规则文件 (*.json)</string>
+    <string name="invalid_rule_file">无效的规则文件</string>
+    <string name="merge_or_replace">导入方式</string>
+    <string name="merge_rules">合并（保留现有规则）</string>
+    <string name="replace_rules">替换（删除现有规则）</string>
+
+    <!-- Common -->
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="back">返回</string>
+    <string name="search">搜索</string>
+    <string name="done">完成</string>
+    <string name="error">错误</string>
+    <string name="success">成功</string>
+    <string name="warning">警告</string>
+    <string name="copied">已复制</string>
+    <string name="share">分享</string>
+</resources>
