@@ -56,9 +56,7 @@ fun SettingsScreen(
                 subtitle = "跳过广告时显示 Toast 提示",
                 checked = settings.showToast,
                 onCheckedChange = {
-                    viewModel.updateSettings {
-                        viewModel.updateSettings { viewModel.settingsManager.setShowToast(it) }
-                    }
+                    viewModel.setShowToast(it)
                 }
             )
 
@@ -68,9 +66,7 @@ fun SettingsScreen(
                 subtitle = "跳过广告时振动提示",
                 checked = settings.vibrate,
                 onCheckedChange = {
-                    viewModel.updateSettings {
-                        viewModel.settingsManager.setVibrate(it)
-                    }
+                    viewModel.setVibrate(it)
                 }
             )
 
@@ -87,9 +83,7 @@ fun SettingsScreen(
                 steps = 29,
                 onValueChange = { delayValue = it },
                 onValueChangeFinished = {
-                    viewModel.updateSettings {
-                        viewModel.settingsManager.setSkipDelay(delayValue.toLong())
-                    }
+                    viewModel.setSkipDelay(delayValue.toLong())
                 }
             )
 

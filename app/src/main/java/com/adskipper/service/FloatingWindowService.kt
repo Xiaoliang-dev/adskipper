@@ -5,6 +5,7 @@ import android.content.*
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.os.*
+import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.view.accessibility.AccessibilityEvent

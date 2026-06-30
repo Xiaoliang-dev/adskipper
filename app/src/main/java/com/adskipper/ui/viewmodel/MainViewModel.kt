@@ -46,7 +46,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asSharedFlow()
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val serviceStatusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -321,6 +321,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating settings", e)
             }
+        }
+    }
+
+    fun setShowToast(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsManager.setShowToast(enabled)
+        }
+    }
+
+    fun setVibrate(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsManager.setVibrate(enabled)
+        }
+    }
+
+    fun setSkipDelay(delay: Long) {
+        viewModelScope.launch {
+            settingsManager.setSkipDelay(delay)
         }
     }
 
