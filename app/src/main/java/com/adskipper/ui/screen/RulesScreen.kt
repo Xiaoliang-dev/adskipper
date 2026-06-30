@@ -305,7 +305,7 @@ private fun RuleItem(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("删除规则") },
-            text = { Text("确定要删除规则 "${rule.name}" 吗？此操作不可恢复。") },
+            text = { Text("确定要删除规则 '${rule.name}' 吗？此操作不可恢复。") },
             confirmButton = {
                 TextButton(
                     onClick = {
