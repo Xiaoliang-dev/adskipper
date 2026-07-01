@@ -40,6 +40,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
+    - name: Decode keystore
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 -d > app/adskipper.keystore
+
     - name: Set build version
       run: |
         COMMIT_HASH=${{ github.sha }}
@@ -107,6 +113,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
+    - name: Decode keystore
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 -d > app/adskipper.keystore
+
     - name: Semantic Release
       uses: cycjimmy/semantic-release-action@v4
       id: semantic
@@ -137,6 +149,10 @@ jobs:
 
     - name: Build Release APK
       if: steps.semantic.outputs.new_release_published == 'true'
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease --no-daemon
 
     - name: Upload Release APK to GitHub Release
