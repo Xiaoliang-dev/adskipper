@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -20,10 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.adskipper.ui.viewmodel.MainViewModel
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.google.gson.Gson
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -84,6 +85,7 @@ fun SettingsScreen(
     var updateInfo by remember { mutableStateOf<UpdateCheckResult?>(null) }
     var checkState by remember { mutableStateOf(UpdateState.Idle) }
     val scope = rememberCoroutineScope()
+    val showAboutScreen = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -193,6 +195,13 @@ fun SettingsScreen(
                 onClick = { /* Could open a help dialog */ }
             )
 
+            SettingsActionItem(
+                icon = Icons.Outlined.Favorite,
+                title = "关于",
+                subtitle = "查看应用详情与许可证",
+                onClick = { showAboutScreen.value = true }
+            )
+
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
             // Danger Zone
@@ -216,6 +225,11 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+
+    // About screen
+    if (showAboutScreen.value) {
+        AboutScreen(onDismiss = { showAboutScreen.value = false })
     }
 
     // Update dialog
@@ -482,5 +496,167 @@ private fun SettingsActionItem(
             tint = textColor.copy(alpha = 0.5f),
             modifier = Modifier.size(20.dp)
         )
+    }
+}
+
+// ── About Screen ──────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AboutScreen(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val aboutText = remember {
+        try {
+            context.resources.getString(com.adskipper.R.string.about_content)
+        } catch (e: Exception) {
+            "# AdSkipper\n\n创作者: Xiaoliang-dev\n\nMIT License"
+        }
+    }
+
+    val lines = remember(aboutText) {
+        aboutText.split("\\n")
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("关于") },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Header: app name + icon
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    Icons.Default.AdsClick,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+                Column {
+                    Text(
+                        text = "AdSkipper",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "广告跳过助手",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
+
+            // Creator info
+            Text(
+                text = "创作者",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Xiaoliang-dev",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Code,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "开源项目 · 由社区贡献者共同维护",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 20.dp))
+
+            // License
+            Text(
+                text = "许可证",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "MIT License",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Copyright (c) 2024 Xiaoliang-dev\n\n" +
+                                "Permission is hereby granted, free of charge, to any person obtaining a copy " +
+                                "of this software and associated documentation files (the \"Software\"), to deal " +
+                                "in the Software without restriction, including without limitation the rights " +
+                                "to use, copy, modify, merge, publish, distribute, sublicense, and/or sell " +
+                                "copies of the Software, and to permit persons to whom the Software is " +
+                                "furnished to do so, subject to the following conditions:\n\n" +
+                                "The above copyright notice and this permission notice shall be included in all " +
+                                "copies or substantial portions of the Software.\n\n" +
+                                "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR " +
+                                "IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, " +
+                                "FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
     }
 }

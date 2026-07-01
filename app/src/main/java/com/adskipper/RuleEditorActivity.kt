@@ -109,30 +109,36 @@ fun RuleEditorScreen(
     // Load existing rule
     LaunchedEffect(ruleId) {
         if (isEditing) {
-            val rule = viewModel.rules.value.find { it.id == ruleId }
-            rule?.let {
-                name = it.name
-                description = it.description
-                packageName = it.packageName
-                priority = it.priority.toString()
-                enabled = it.enabled
-                useText = it.useText
-                targetText = it.targetText
-                textMatchType = it.textMatchType
-                useId = it.useId
-                targetId = it.targetId
-                idMatchType = it.idMatchType
-                useClassName = it.useClassName
-                targetClassName = it.targetClassName
-                classMatchType = it.classMatchType
-                useContentDesc = it.useContentDesc
-                targetContentDesc = it.targetContentDesc
-                contentDescMatchType = it.contentDescMatchType
-                actionType = it.actionType
-                customClickX = if (it.customClickX >= 0) it.customClickX.toString() else ""
-                customClickY = if (it.customClickY >= 0) it.customClickY.toString() else ""
-                delayMs = it.delayMs.toString()
-                clickParent = it.clickParent
+            try {
+                val rule = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.adskipper.data.RuleManager.getInstance(context).getRuleById(ruleId)
+                }
+                rule?.let {
+                    name = it.name
+                    description = it.description
+                    packageName = it.packageName
+                    priority = it.priority.toString()
+                    enabled = it.enabled
+                    useText = it.useText
+                    targetText = it.targetText
+                    textMatchType = it.textMatchType
+                    useId = it.useId
+                    targetId = it.targetId
+                    idMatchType = it.idMatchType
+                    useClassName = it.useClassName
+                    targetClassName = it.targetClassName
+                    classMatchType = it.classMatchType
+                    useContentDesc = it.useContentDesc
+                    targetContentDesc = it.targetContentDesc
+                    contentDescMatchType = it.contentDescMatchType
+                    actionType = it.actionType
+                    customClickX = if (it.customClickX >= 0) it.customClickX.toString() else ""
+                    customClickY = if (it.customClickY >= 0) it.customClickY.toString() else ""
+                    delayMs = it.delayMs.toString()
+                    clickParent = it.clickParent
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RuleEditor", "Error loading rule", e)
             }
         }
     }
