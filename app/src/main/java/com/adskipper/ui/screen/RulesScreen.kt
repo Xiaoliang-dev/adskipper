@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,12 +36,14 @@ fun RulesScreen(
     onExportRules: () -> Unit,
     onImportRules: () -> Unit,
     onCopyToClipboard: () -> Unit,
-    onImportFromClipboard: () -> Unit
+    onImportFromClipboard: () -> Unit,
+    onDeleteAllRules: () -> Unit = {}
 ) {
     val rules by viewModel.rules.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var searchQuery by remember { mutableStateOf("") }
     var showMenu by remember { mutableStateOf(false) }
+    var showDeleteAllConfirm by remember { mutableStateOf(false) }
 
     // Collect snackbar messages
     LaunchedEffect(Unit) {
@@ -101,7 +104,10 @@ fun RulesScreen(
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             },
-                            onClick = { showMenu = false }
+                            onClick = {
+                                showMenu = false
+                                showDeleteAllConfirm = true
+                            }
                         )
                     }
                 },
@@ -179,9 +185,19 @@ fun RulesScreen(
             }
         }
     }
+
+    if (showDeleteAllConfirm) {
+        DeleteAllConfirmDialog(
+            onConfirm = {
+                onDeleteAllRules()
+                showDeleteAllConfirm = false
+            },
+            onDismiss = { showDeleteAllConfirm = false }
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun RuleItem(
     rule: RuleEntity,
@@ -196,7 +212,10 @@ private fun RuleItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onEdit),
+            .combinedClickable(
+                onClick = onEdit,
+                onLongClick = { showDeleteConfirm = true }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = if (rule.enabled) {
                 MaterialTheme.colorScheme.surface
@@ -328,6 +347,34 @@ private fun RuleItem(
             }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeleteAllConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("删除所有规则") },
+        text = { Text("确定要删除所有规则吗？此操作不可恢复。") },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("删除")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
 }
 
 @Composable
