@@ -169,12 +169,41 @@ class FloatingWindowService : Service() {
         val inflater = LayoutInflater.from(this)
         val view = inflater.inflate(R.layout.floating_window, null)
 
-        // Setup drag
-        var initialX = 0
-        var initialY = 0
-        var touchX = 0f
-        var touchY = 0f
+        // Record button - click to start/stop recording
+        val recordBtn = view.findViewById<View>(com.adskipper.R.id.btn_record)
+        recordBtn?.setOnClickListener {
+            if (isRecording) {
+                stopRecordingMode()
+                showSnackbar("录制已停止")
+            } else {
+                val targetPkg = getForegroundPackage()
+                if (targetPkg != null) {
+                    selectedPackage = targetPkg
+                    startRecordingMode(targetPkg)
+                    showSnackbar("录制开始，请在目标广告上点击")
+                } else {
+                    showSnackbar("无法获取当前应用，请先打开目标应用")
+                }
+            }
+        }
 
+        // Minimize/expand button
+        val minimizeBtn = view.findViewById<View>(com.adskipper.R.id.btn_minimize)
+        minimizeBtn?.setOnClickListener {
+            val actionPanel = view.findViewById<View>(com.adskipper.R.id.action_panel)
+            if (actionPanel != null) {
+                val isVisible = actionPanel.visibility == View.VISIBLE
+                actionPanel.visibility = if (isVisible) View.GONE else View.VISIBLE
+            }
+        }
+
+        // Close button
+        val closeBtn = view.findViewById<View>(com.adskipper.R.id.btn_close)
+        closeBtn?.setOnClickListener {
+            hideFloatingWindow()
+        }
+
+        // Setup drag — return false on ACTION_DOWN so inner ImageButtons get their click events
         view.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -182,7 +211,7 @@ class FloatingWindowService : Service() {
                     initialY = params.y
                     touchX = event.rawX
                     touchY = event.rawY
-                    true
+                    false
                 }
                 MotionEvent.ACTION_MOVE -> {
                     params.x = initialX + (event.rawX - touchX).toInt()
@@ -193,7 +222,6 @@ class FloatingWindowService : Service() {
                 MotionEvent.ACTION_UP -> {
                     val dx = event.rawX - touchX
                     val dy = event.rawY - touchY
-                    // If it's a tap (not drag), toggle recording
                     if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
                         handleTap()
                     }
@@ -213,7 +241,6 @@ class FloatingWindowService : Service() {
         if (isRecording) {
             showSnackbar("录制模式已激活，请在目标广告上点击")
         } else {
-            // Toggle recording mode directly (no app selection needed)
             val targetPkg = getForegroundPackage()
             if (targetPkg != null) {
                 selectedPackage = targetPkg
@@ -226,13 +253,18 @@ class FloatingWindowService : Service() {
     }
 
     private fun showSnackbar(message: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val intent = Intent("com.adskipper.ACTION_SNACKBAR").apply {
-                putExtra("message", message)
-                setPackage(packageName)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val intent = Intent("com.adskipper.ACTION_SNACKBAR").apply {
+                    putExtra("message", message)
+                    setPackage(packageName)
+                }
+                sendBroadcast(intent)
             }
-            sendBroadcast(intent)
-        }
+            // Also show toast for all versions as fallback
+            val toast = android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT)
+            toast.show()
+        } catch (_: Exception) {}
     }
 
     private fun showAppSelectionDialog() {
