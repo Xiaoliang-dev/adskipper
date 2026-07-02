@@ -2,6 +2,7 @@ package com.adskipper
 
 import android.content.*
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
@@ -166,7 +167,7 @@ class MainActivity : ComponentActivity() {
             addAction("com.adskipper.ACTION_NODE_CAPTURED")
             addAction("com.adskipper.ACTION_SNACKBAR")
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= 33) {
             registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(receiver, filter)
