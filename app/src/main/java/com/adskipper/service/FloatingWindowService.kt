@@ -190,38 +190,49 @@ class FloatingWindowService : Service() {
                     windowManager.updateViewLayout(view, params)
                     true
                 }
+                MotionEvent.ACTION_UP -> {
+                    val dx = event.rawX - touchX
+                    val dy = event.rawY - touchY
+                    // If it's a tap (not drag), toggle recording
+                    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                        handleTap()
+                    }
+                    true
+                }
                 else -> false
             }
-        }
-
-        // Minimize button
-        val minimizeBtn = view.findViewById<View>(android.R.id.button1)
-        minimizeBtn?.setOnClickListener {
-            // Toggle between minimized and expanded states
-            val contentView = view.findViewById<View>(android.R.id.content)
-            contentView?.visibility = if (contentView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-        }
-
-        // Record button
-        val recordBtn = view.findViewById<View>(android.R.id.button2)
-        recordBtn?.setOnClickListener {
-            if (isRecording) {
-                stopRecordingMode()
-            } else {
-                // Show app selection dialog
-                showAppSelectionDialog()
-            }
-        }
-
-        // Close button
-        val closeBtn = view.findViewById<View>(android.R.id.button3)
-        closeBtn?.setOnClickListener {
-            hideFloatingWindow()
         }
 
         windowManager.addView(view, params)
         floatingView = view
         isFloatingShown = true
+    }
+
+    private fun handleTap() {
+        val view = floatingView ?: return
+        if (isRecording) {
+            showSnackbar("录制模式已激活，请在目标广告上点击")
+        } else {
+            // Toggle recording mode directly (no app selection needed)
+            val targetPkg = getForegroundPackage()
+            if (targetPkg != null) {
+                selectedPackage = targetPkg
+                startRecordingMode(targetPkg)
+                showSnackbar("录制开始，已选择 $targetPkg")
+            } else {
+                showSnackbar("无法获取当前应用，请先打开目标应用")
+            }
+        }
+    }
+
+    private fun showSnackbar(message: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val intent = Intent("com.adskipper.ACTION_SNACKBAR").apply {
+                putExtra("message", message)
+                setPackage(packageName)
+            }
+            sendBroadcast(intent)
+        }
     }
 
     private fun showAppSelectionDialog() {
@@ -248,8 +259,13 @@ class FloatingWindowService : Service() {
     }
 
     fun startRecordingMode(packageName: String = selectedPackage) {
-        if (packageName.isBlank()) return
-        selectedPackage = packageName
+        // Use current foreground package if not specified
+        val targetPkg = if (packageName.isBlank()) getForegroundPackage() ?: "" else packageName
+        if (targetPkg.isBlank()) {
+            Log.w(TAG, "Cannot start recording: no target package")
+            return
+        }
+        selectedPackage = targetPkg
         isRecording = true
 
         // Show overlay to capture taps
@@ -296,10 +312,12 @@ class FloatingWindowService : Service() {
         val view = View(this).apply {
             setBackgroundColor(0x22000000) // Semi-transparent
             setOnTouchListener { _, event ->
-                if (event.action == MotionEvent.ACTION_DOWN) {
+                if (event.action == MotionEvent.ACTION_UP) {
                     captureNodeAt(event.rawX.toInt(), event.rawY.toInt())
+                    true
+                } else {
+                    true // Consume all events to let underlying app receive nothing during recording
                 }
-                true
             }
         }
 
@@ -308,10 +326,10 @@ class FloatingWindowService : Service() {
     }
 
     private fun captureNodeAt(x: Int, y: Int) {
-        // Use AccessibilityService to get node at position
-        val service = AdSkipAccessibilityService()
-        val rootNode = service.rootInActiveWindow ?: run {
-            Log.w(TAG, "Cannot get root node")
+        // Use the running AccessibilityService instance to get node at position
+        val rootNode = AdSkipAccessibilityService.rootInActiveWindowStatic ?: run {
+            Log.w(TAG, "Cannot get root node - accessibility service not running?")
+            sendCaptureError("无障碍服务未运行")
             return
         }
 
@@ -339,14 +357,41 @@ class FloatingWindowService : Service() {
                 putExtra("node_bounds", nodeInfo.bounds)
                 putExtra("node_desc", nodeInfo.contentDesc)
                 putExtra("node_package", nodeInfo.packageName)
+                setPackage(packageName)
             }
             sendBroadcast(intent)
 
             // Stop recording after capture
             stopRecordingMode()
+
+            // Show toast to confirm capture
+            showCaptureToast()
         }
 
         rootNode.recycle()
+    }
+
+    private fun showCaptureToast() {
+        try {
+            val toast = android.widget.Toast.makeText(
+                this,
+                "已捕获元素: ${if (selectedPackage.isNotEmpty()) selectedPackage else "当前应用"}",
+                android.widget.Toast.LENGTH_SHORT
+            )
+            toast.show()
+        } catch (_: Exception) {}
+    }
+
+    private fun sendCaptureError(message: String) {
+        val intent = Intent("com.adskipper.ACTION_NODE_CAPTURED").apply {
+            putExtra("error", message)
+            setPackage(packageName)
+        }
+        sendBroadcast(intent)
+        try {
+            val toast = android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT)
+            toast.show()
+        } catch (_: Exception) {}
     }
 
     private fun findNodeAtPosition(node: AccessibilityNodeInfo, x: Int, y: Int): AccessibilityNodeInfo? {
@@ -373,10 +418,32 @@ class FloatingWindowService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        hideFloatingWindow()
+        try {
+            hideFloatingWindow()
+        } catch (_: Exception) {}
         try {
             unregisterReceiver(commandReceiver)
-        } catch (e: Exception) {}
+        } catch (_: Exception) {}
         serviceScope.cancel()
+    }
+
+    private fun getForegroundPackage(): String? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as? android.app.usage.UsageStatsManager
+            val currentTime = System.currentTimeMillis()
+            val stats = usageStatsManager?.queryUsageStats(
+                android.app.usage.UsageStatsManager.INTERVAL_DAILY,
+                currentTime - 1000 * 60 * 5,
+                currentTime
+            )
+            if (stats != null) {
+                val recentStats = stats.sortedByDescending { it.lastTimeUsed }
+                if (recentStats.isNotEmpty()) {
+                    val topPackage = recentStats[0].packageName
+                    if (topPackage != packageName) return topPackage
+                }
+            }
+        }
+        return selectedPackage.ifBlank { null }
     }
 }

@@ -34,6 +34,10 @@ class AdSkipAccessibilityService : AccessibilityService() {
 
         var isRunning: Boolean = false
             private set
+        var rootInActiveWindowStatic: AccessibilityNodeInfo? = null
+            private set
+        var rootInActiveWindowStatic: AccessibilityNodeInfo? = null
+            private set
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -82,6 +86,9 @@ class AdSkipAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        // Update static reference for floating window recording
+        rootInActiveWindowStatic = rootInActiveWindow
+
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
@@ -380,6 +387,7 @@ class AdSkipAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
+        rootInActiveWindowStatic = null
         broadcastStatus()
         try {
             unregisterReceiver(commandReceiver)

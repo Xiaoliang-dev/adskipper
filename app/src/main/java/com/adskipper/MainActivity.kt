@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
+    private var recordingReceiver: BroadcastReceiver? = null
 
     private val accessibilityLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -55,6 +56,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Register recording broadcast receiver
+        registerRecordingReceiver()
 
         // Handle intent from file opening
         handleIntent(intent)
@@ -116,5 +120,64 @@ class MainActivity : ComponentActivity() {
     private fun generateExportFileName(): String {
         val dateFormat = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
         return "adskipper_rules_${dateFormat.format(java.util.Date())}.json"
+    }
+
+    private fun registerRecordingReceiver() {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    "com.adskipper.ACTION_NODE_CAPTURED" -> {
+                        val error = intent.getStringExtra("error")
+                        if (error != null) {
+                            android.widget.Toast.makeText(this@MainActivity, error, android.widget.Toast.LENGTH_LONG).show()
+                            return
+                        }
+                        val text = intent.getStringExtra("node_text") ?: ""
+                        val viewId = intent.getStringExtra("node_id") ?: ""
+                        val className = intent.getStringExtra("node_class") ?: ""
+                        val bounds = intent.getStringExtra("node_bounds") ?: ""
+                        val desc = intent.getStringExtra("node_desc") ?: ""
+                        val pkg = intent.getStringExtra("node_package") ?: ""
+
+                        // Create a rule from captured node
+                        val rule = com.adskipper.data.RuleEntity(
+                            name = "录制规则 - ${pkg.split(".").lastOrNull() ?: pkg}",
+                            packageName = pkg,
+                            useText = text.isNotBlank(),
+                            targetText = text,
+                            useId = viewId.isNotBlank(),
+                            targetId = viewId,
+                            useClassName = className.isNotBlank(),
+                            targetClassName = className,
+                            useContentDesc = desc.isNotBlank(),
+                            targetContentDesc = desc
+                        )
+                        viewModel.addRule(rule)
+                        android.widget.Toast.makeText(this@MainActivity, "规则已创建！", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                    "com.adskipper.ACTION_SNACKBAR" -> {
+                        val msg = intent.getStringExtra("message") ?: return
+                        android.widget.Toast.makeText(this@MainActivity, msg, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction("com.adskipper.ACTION_NODE_CAPTURED")
+            addAction("com.adskipper.ACTION_SNACKBAR")
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(receiver, filter)
+        }
+        recordingReceiver = receiver
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            recordingReceiver?.let { unregisterReceiver(it) }
+        } catch (_: Exception) {}
     }
 }
