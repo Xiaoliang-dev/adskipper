@@ -114,6 +114,9 @@ fun AdSkipperApp(
                     },
                     onImportFromClipboard = {
                         viewModel.importFromClipboard()
+                    },
+                    onDeleteAllRules = {
+                        viewModel.deleteAllRules()
                     }
                 )
             }

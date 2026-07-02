@@ -1,8 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
 }
+
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
+
+val versionNameFromCI = localProperties.getProperty("version.name") ?: "1.0.0-dev"
+val versionCodeFromCI = localProperties.getProperty("version.code")?.toIntOrNull() ?: 1
 
 android {
     namespace = "com.adskipper"
@@ -12,12 +24,21 @@ android {
         applicationId = "com.adskipper"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = versionCodeFromCI
+        versionName = versionNameFromCI
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("adskipper.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
@@ -29,7 +50,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
@@ -61,7 +82,7 @@ android {
         }
     }
 
-    // Build APK with "universal" in name
+    // Build APK with version and build type in name
     android.applicationVariants.all {
         val variant = this
         variant.outputs.all {
