@@ -203,26 +203,31 @@ class FloatingWindowService : Service() {
             hideFloatingWindow()
         }
 
-        // Setup drag — return false on ACTION_DOWN so inner ImageButtons get their click events
+        // Setup drag — declare vars outside the lambda so they persist across touch events
+        var dragInitialX = 0
+        var dragInitialY = 0
+        var dragTouchX = 0f
+        var dragTouchY = 0f
+
         view.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    initialX = params.x
-                    initialY = params.y
-                    touchX = event.rawX
-                    touchY = event.rawY
+                    dragInitialX = params.x
+                    dragInitialY = params.y
+                    dragTouchX = event.rawX
+                    dragTouchY = event.rawY
                     false
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    params.x = initialX + (event.rawX - touchX).toInt()
-                    params.y = initialY + (event.rawY - touchY).toInt()
+                    params.x = dragInitialX + (event.rawX - dragTouchX).toInt()
+                    params.y = dragInitialY + (event.rawY - dragTouchY).toInt()
                     windowManager.updateViewLayout(view, params)
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    val dx = event.rawX - touchX
-                    val dy = event.rawY - touchY
-                    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                    val dx = (event.rawX - dragTouchX).toInt()
+                    val dy = (event.rawY - dragTouchY).toInt()
+                    if (kotlin.math.abs(dx) < 10 && kotlin.math.abs(dy) < 10) {
                         handleTap()
                     }
                     true
